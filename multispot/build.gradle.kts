@@ -73,7 +73,7 @@ publishing {
                 developer {
                     id.set("yutarosuzuki-jp")
                     name.set("Yutaro Suzuki")
-                    email.set("yutarosuzuki.jp@gmail.com")
+                    email.set("i.buzzbuzzinc@gmail.com")
                 }
             }
             scm {
