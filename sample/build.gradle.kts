@@ -76,6 +76,11 @@ android {
             isMinifyEnabled = false
         }
     }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
 }
 
 compose.desktop {

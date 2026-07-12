@@ -56,6 +56,13 @@ fun App() {
     var demoMode by remember { mutableStateOf("multi") }
     var statusText by remember { mutableStateOf("Ready") }
     var selectedStyle by remember { mutableStateOf(TooltipStyle.Balloon) }
+    var animationsEnabled by remember { mutableStateOf(true) }
+
+    val animConfig = if (animationsEnabled) {
+        io.github.yutarosuzuki_jp.multispot.MultispotAnimationConfig.Default
+    } else {
+        io.github.yutarosuzuki_jp.multispot.MultispotAnimationConfig.Disabled
+    }
 
     MaterialTheme(
         colorScheme = darkColorScheme(
@@ -70,7 +77,8 @@ fun App() {
         ) {
             MultispotArea(
                 state = state,
-                overlayColor = Color.Black.copy(alpha = 0.8f)
+                overlayColor = Color.Black.copy(alpha = 0.8f),
+                animationConfig = animConfig
             ) {
                 Box(
                     modifier = Modifier
@@ -105,146 +113,160 @@ fun App() {
                     }
 
                     if (demoMode == "multi") {
+                        // Place targets in a dedicated container to avoid overlaps with the control panel
                         Box(
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
-                                .padding(top = 100.dp)
-                                .size(56.dp)
-                                .multispot(
-                                    state = state,
-                                    step = 0,
-                                    key = "top_target",
-                                    shape = SpotShape.Circle(radius = 32.dp),
-                                    tooltipStyle = selectedStyle,
-                                    preferredDirection = TooltipDirection.Top,
-                                    tooltip = { arrowPos ->
-                                        TooltipBalloon(
-                                            title = "Top Direction",
-                                            message = "This tooltip is configured to show on TOP.",
-                                            style = selectedStyle,
-                                            arrowPosition = arrowPos
-                                        )
-                                    }
-                                )
-                                .background(Color(0xFFEC4899), CircleShape),
-                            contentAlignment = Alignment.Center
+                                .padding(top = 130.dp)
+                                .size(220.dp)
                         ) {
-                            Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Up", tint = Color.White)
-                        }
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .size(56.dp)
+                                    .multispot(
+                                        state = state,
+                                        step = 0,
+                                        key = "top_target",
+                                        shape = SpotShape.Circle(radius = 32.dp),
+                                        tooltipStyle = selectedStyle,
+                                        preferredDirection = TooltipDirection.Top,
+                                        tooltip = { arrowPos ->
+                                            TooltipBalloon(
+                                                title = "Top Direction",
+                                                message = "This tooltip is configured to show on TOP.",
+                                                style = selectedStyle,
+                                                arrowPosition = arrowPos
+                                            )
+                                        }
+                                    )
+                                    .background(Color(0xFFEC4899), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Up", tint = Color.White)
+                            }
 
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .padding(start = 16.dp)
-                                .size(56.dp)
-                                .multispot(
-                                    state = state,
-                                    step = 1,
-                                    key = "left_target",
-                                    shape = SpotShape.Circle(radius = 32.dp),
-                                    tooltipStyle = selectedStyle,
-                                    preferredDirection = TooltipDirection.Left,
-                                    tooltip = { arrowPos ->
-                                        TooltipBalloon(
-                                            title = "Left Direction",
-                                            message = "This tooltip is configured to show on the LEFT.",
-                                            style = selectedStyle,
-                                            arrowPosition = arrowPos
-                                        )
-                                    }
-                                )
-                                .background(Color(0xFF3B82F6), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Left", tint = Color.White)
-                        }
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.CenterStart)
+                                    .size(56.dp)
+                                    .multispot(
+                                        state = state,
+                                        step = 1,
+                                        key = "left_target",
+                                        shape = SpotShape.Circle(radius = 32.dp),
+                                        tooltipStyle = selectedStyle,
+                                        preferredDirection = TooltipDirection.Left,
+                                        tooltip = { arrowPos ->
+                                            TooltipBalloon(
+                                                title = "Left Direction",
+                                                message = "This tooltip is configured to show on the LEFT.",
+                                                style = selectedStyle,
+                                                arrowPosition = arrowPos
+                                            )
+                                        }
+                                    )
+                                    .background(Color(0xFF3B82F6), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Left", tint = Color.White)
+                            }
 
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(end = 16.dp)
-                                .size(56.dp)
-                                .multispot(
-                                    state = state,
-                                    step = 2,
-                                    key = "right_target",
-                                    shape = SpotShape.Circle(radius = 32.dp),
-                                    tooltipStyle = selectedStyle,
-                                    preferredDirection = TooltipDirection.Right,
-                                    tooltip = { arrowPos ->
-                                        TooltipBalloon(
-                                            title = "Right Direction",
-                                            message = "This tooltip is configured to show on the RIGHT.",
-                                            style = selectedStyle,
-                                            arrowPosition = arrowPos
-                                        )
-                                    }
-                                )
-                                .background(Color(0xFF10B981), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Right", tint = Color.White)
-                        }
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .size(56.dp)
+                                    .multispot(
+                                        state = state,
+                                        step = 2,
+                                        key = "right_target",
+                                        shape = SpotShape.Circle(radius = 32.dp),
+                                        tooltipStyle = selectedStyle,
+                                        preferredDirection = TooltipDirection.Right,
+                                        animationConfig = io.github.yutarosuzuki_jp.multispot.MultispotAnimationConfig(
+                                            arrowAnimation = io.github.yutarosuzuki_jp.multispot.MultispotAnimationSpec(durationMillis = 3000), // slow arrow
+                                            balloonAnimation = io.github.yutarosuzuki_jp.multispot.MultispotAnimationSpec(durationMillis = 1000, maxOffset = 16.dp) // fast floating
+                                        ),
+                                        tooltip = { arrowPos ->
+                                            TooltipBalloon(
+                                                title = "Right Direction",
+                                                message = "This tooltip is configured to show on the RIGHT.",
+                                                style = selectedStyle,
+                                                arrowPosition = arrowPos
+                                            )
+                                        }
+                                    )
+                                    .background(Color(0xFF10B981), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Right", tint = Color.White)
+                            }
 
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 120.dp)
-                                .size(56.dp)
-                                .multispot(
-                                    state = state,
-                                    step = 3,
-                                    key = "bottom_target",
-                                    shape = SpotShape.Circle(radius = 32.dp),
-                                    tooltipStyle = selectedStyle,
-                                    preferredDirection = TooltipDirection.Bottom,
-                                    tooltip = { arrowPos ->
-                                        TooltipBalloon(
-                                            title = "Bottom Direction",
-                                            message = "This tooltip is configured to show on the BOTTOM.",
-                                            style = selectedStyle,
-                                            arrowPosition = arrowPos
-                                        )
-                                    }
-                                )
-                                .background(Color(0xFFF59E0B), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Down", tint = Color.White)
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .size(56.dp)
+                                    .multispot(
+                                        state = state,
+                                        step = 3,
+                                        key = "bottom_target",
+                                        shape = SpotShape.Circle(radius = 32.dp),
+                                        tooltipStyle = selectedStyle,
+                                        preferredDirection = TooltipDirection.Bottom,
+                                        tooltip = { arrowPos ->
+                                            TooltipBalloon(
+                                                title = "Bottom Direction",
+                                                message = "This tooltip is configured to show on the BOTTOM.",
+                                                style = selectedStyle,
+                                                arrowPosition = arrowPos
+                                            )
+                                        }
+                                    )
+                                    .background(Color(0xFFF59E0B), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Down", tint = Color.White)
+                            }
                         }
                     } else {
                         Box(
                             modifier = Modifier
-                                .align(Alignment.Center)
-                                .offset(y = (-80).dp)
-                                .size(72.dp)
-                                .multispot(
-                                    state = state,
-                                    step = 4,
-                                    key = "single_target",
-                                    shape = DiamondShape(margin = 8.dp),
-                                    tooltipStyle = selectedStyle,
-                                    preferredDirection = TooltipDirection.Auto,
-                                    tooltip = { arrowPos ->
-                                        TooltipBalloon(
-                                            title = "Diamond Custom Shape",
-                                            message = "Using custom Diamond SpotShape cutout & single-step mode!",
-                                            style = selectedStyle,
-                                            arrowPosition = arrowPos
-                                        )
-                                    }
-                                )
-                                .background(Color(0xFF8B5CF6), RoundedCornerShape(16.dp)),
+                                .align(Alignment.TopCenter)
+                                .padding(top = 130.dp)
+                                .size(220.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Star, contentDescription = "Star", tint = Color.White, modifier = Modifier.size(36.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .multispot(
+                                        state = state,
+                                        step = 4,
+                                        key = "single_target",
+                                        shape = DiamondShape(margin = 8.dp),
+                                        tooltipStyle = selectedStyle,
+                                        preferredDirection = TooltipDirection.Auto,
+                                        tooltip = { arrowPos ->
+                                            TooltipBalloon(
+                                                title = "Diamond Custom Shape",
+                                                message = "Using custom Diamond SpotShape cutout & single-step mode!",
+                                                style = selectedStyle,
+                                                arrowPosition = arrowPos
+                                            )
+                                        }
+                                    )
+                                    .background(Color(0xFF8B5CF6), RoundedCornerShape(16.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.Star, contentDescription = "Star", tint = Color.White, modifier = Modifier.size(36.dp))
+                            }
                         }
                     }
 
                     Column(
                         modifier = Modifier
-                            .align(Alignment.Center)
-                            .offset(y = 120.dp)
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 16.dp)
                             .width(320.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -299,6 +321,43 @@ fun App() {
                                 ) {
                                     Text(style.name, fontSize = 8.sp)
                                 }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text("Animations", fontSize = 12.sp, color = Color.White.copy(alpha = 0.7f))
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Button(
+                                onClick = {
+                                    animationsEnabled = true
+                                    statusText = "Animations Enabled"
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (animationsEnabled) Color(0xFF10B981) else Color(0xFF334155)
+                                ),
+                                modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
+                            ) {
+                                Text("Enabled", fontSize = 11.sp)
+                            }
+
+                            Button(
+                                onClick = {
+                                    animationsEnabled = false
+                                    statusText = "Animations Disabled"
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (!animationsEnabled) Color(0xFFEF4444) else Color(0xFF334155)
+                                ),
+                                modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp)
+                            ) {
+                                Text("Disabled", fontSize = 11.sp)
                             }
                         }
 

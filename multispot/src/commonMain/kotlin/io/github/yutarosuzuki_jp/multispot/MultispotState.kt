@@ -68,6 +68,7 @@ class MultispotState {
         shape: SpotShape,
         tooltipStyle: TooltipStyle,
         preferredDirection: TooltipDirection,
+        animationConfig: MultispotAnimationConfig?,
         tooltip: @Composable (BalloonArrowPosition) -> Unit,
         onTargetClicked: (() -> Unit)?
     ) {
@@ -78,6 +79,7 @@ class MultispotState {
             shape = shape,
             tooltipStyle = tooltipStyle,
             preferredDirection = preferredDirection,
+            animationConfig = animationConfig,
             coordinates = existing?.coordinates,
             relativeRect = existing?.relativeRect,
             tooltip = tooltip,
@@ -122,6 +124,7 @@ data class SpotInfo(
     val shape: SpotShape,
     val tooltipStyle: TooltipStyle,
     val preferredDirection: TooltipDirection,
+    val animationConfig: MultispotAnimationConfig?,
     val coordinates: LayoutCoordinates?,
     val relativeRect: Rect?,
     val tooltip: @Composable (BalloonArrowPosition) -> Unit,

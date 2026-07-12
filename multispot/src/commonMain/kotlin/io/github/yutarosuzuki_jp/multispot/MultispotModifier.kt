@@ -13,16 +13,18 @@ fun Modifier.multispot(
     shape: SpotShape = SpotShape.RoundedRect(),
     tooltipStyle: TooltipStyle = TooltipStyle.Arrow,
     preferredDirection: TooltipDirection = TooltipDirection.Auto,
+    animationConfig: MultispotAnimationConfig? = null,
     onTargetClicked: (() -> Unit)? = null,
     tooltip: @Composable (BalloonArrowPosition) -> Unit
 ): Modifier = this.composed {
-    DisposableEffect(state, step, key, shape, tooltipStyle, preferredDirection, tooltip, onTargetClicked) {
+    DisposableEffect(state, step, key, shape, tooltipStyle, preferredDirection, animationConfig, tooltip, onTargetClicked) {
         state.registerSpot(
             step = step,
             key = key,
             shape = shape,
             tooltipStyle = tooltipStyle,
             preferredDirection = preferredDirection,
+            animationConfig = animationConfig,
             tooltip = tooltip,
             onTargetClicked = onTargetClicked
         )

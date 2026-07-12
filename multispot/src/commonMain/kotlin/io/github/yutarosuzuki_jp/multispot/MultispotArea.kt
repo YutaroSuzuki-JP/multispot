@@ -1,9 +1,11 @@
 package io.github.yutarosuzuki_jp.multispot
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
@@ -34,6 +36,7 @@ fun MultispotArea(
     modifier: Modifier = Modifier,
     overlayColor: Color = Color.Black.copy(alpha = 0.75f),
     arrowColor: Color = Color.White,
+    animationConfig: MultispotAnimationConfig = MultispotAnimationConfig.Default,
     content: @Composable () -> Unit
 ) {
     Box(
@@ -49,6 +52,32 @@ fun MultispotArea(
         if (state.isVisible) {
             val currentSpot = state.currentSpot
             val rect = currentSpot?.relativeRect
+
+            val currentAnimationConfig = currentSpot?.animationConfig ?: animationConfig
+            val arrowSpec = currentAnimationConfig.arrowAnimation
+            val balloonSpec = currentAnimationConfig.balloonAnimation
+
+            val arrowTransition = rememberInfiniteTransition(label = "MultispotArrow")
+            val arrowProgress by arrowTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = arrowSpec.durationMillis, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Restart
+                ),
+                label = "ArrowProgress"
+            )
+
+            val balloonTransition = rememberInfiniteTransition(label = "MultispotBalloon")
+            val balloonFloatOffset by balloonTransition.animateFloat(
+                initialValue = -1f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = balloonSpec.durationMillis, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "BalloonFloatOffset"
+            )
 
             var tooltipPosition by remember { mutableStateOf(Offset.Zero) }
             var tooltipSize by remember { mutableStateOf(IntSize.Zero) }
@@ -82,72 +111,82 @@ fun MultispotArea(
                         val marginPx = currentSpot.shape.margin.toPx() + 6.dp.toPx()
                         val startX: Float
                         val startY: Float
-                        val endX: Float
-                        val endY: Float
+                        val targetEndX: Float
+                        val targetEndY: Float
 
                         when (actualDirection) {
                             TooltipDirection.Bottom -> {
                                 startX = tooltipPosition.x + tooltipSize.width / 2f
                                 startY = tooltipPosition.y - 8.dp.toPx()
-                                endX = rect.center.x
-                                endY = rect.bottom + marginPx
+                                targetEndX = rect.center.x
+                                targetEndY = rect.bottom + marginPx
                             }
                             TooltipDirection.Top -> {
                                 startX = tooltipPosition.x + tooltipSize.width / 2f
                                 startY = tooltipPosition.y + tooltipSize.height + 8.dp.toPx()
-                                endX = rect.center.x
-                                endY = rect.top - marginPx
+                                targetEndX = rect.center.x
+                                targetEndY = rect.top - marginPx
                             }
                             TooltipDirection.Left -> {
-                                startX = tooltipPosition.x + tooltipSize.width + 8.dp.toPx()
-                                startY = tooltipPosition.y + tooltipSize.height / 2f
-                                endX = rect.left - marginPx
-                                endY = rect.center.y
+                                startX = rect.left - marginPx
+                                startY = rect.center.y
+                                targetEndX = tooltipPosition.x + tooltipSize.width + 8.dp.toPx()
+                                targetEndY = tooltipPosition.y + tooltipSize.height / 2f
                             }
                             TooltipDirection.Right -> {
-                                startX = tooltipPosition.x - 8.dp.toPx()
-                                startY = tooltipPosition.y + tooltipSize.height / 2f
-                                endX = rect.right + marginPx
-                                endY = rect.center.y
+                                startX = rect.right + marginPx
+                                startY = rect.center.y
+                                targetEndX = tooltipPosition.x - 8.dp.toPx()
+                                targetEndY = tooltipPosition.y + tooltipSize.height / 2f
                             }
                             else -> {
-                                startX = 0f; startY = 0f; endX = 0f; endY = 0f
+                                startX = 0f; startY = 0f; targetEndX = 0f; targetEndY = 0f
                             }
                         }
 
                         val controlX = when (actualDirection) {
                             TooltipDirection.Bottom, TooltipDirection.Top -> {
-                                (startX + endX) / 2f + 50.dp.toPx() * (if (startX < endX) 1f else -1f)
+                                (startX + targetEndX) / 2f + 50.dp.toPx() * (if (startX < targetEndX) 1f else -1f)
                             }
                             else -> {
-                                (startX + endX) / 2f
+                                (startX + targetEndX) / 2f
                             }
                         }
                         val controlY = when (actualDirection) {
                             TooltipDirection.Left, TooltipDirection.Right -> {
-                                (startY + endY) / 2f + 50.dp.toPx() * (if (startY < endY) 1f else -1f)
+                                (startY + targetEndY) / 2f + 50.dp.toPx() * (if (startY < targetEndY) 1f else -1f)
                             }
                             else -> {
-                                (startY + endY) / 2f
+                                (startY + targetEndY) / 2f
                             }
                         }
 
-                        val path = Path().apply {
+                        val fullPath = Path().apply {
                             moveTo(startX, startY)
-                            quadraticTo(controlX, controlY, endX, endY)
+                            quadraticTo(controlX, controlY, targetEndX, targetEndY)
                         }
 
+                        val drawProgress = if (arrowSpec.enabled) arrowProgress else 1f
+                        val pathMeasure = androidx.compose.ui.graphics.PathMeasure()
+                        pathMeasure.setPath(fullPath, false)
+
+                        val animatedPath = Path()
+                        pathMeasure.getSegment(0f, pathMeasure.length * drawProgress, animatedPath, true)
+
                         drawPath(
-                            path = path,
+                            path = animatedPath,
                             color = arrowColor,
                             style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
                         )
 
-                        val t = 0.95f
-                        val mt = 1f - t
-                        val dx = 2f * mt * (controlX - startX) + 2f * t * (endX - controlX)
-                        val dy = 2f * mt * (controlY - startY) + 2f * t * (endY - controlY)
-                        val angle = atan2(dy, dx)
+                        // 矢印の頭部をアニメーション進捗の先端に合わせて描画する
+                        val currentLength = pathMeasure.length * drawProgress
+                        val position = pathMeasure.getPosition(currentLength)
+                        val tangent = pathMeasure.getTangent(currentLength)
+                        val angle = atan2(tangent.y, tangent.x)
+
+                        val endX = position.x
+                        val endY = position.y
 
                         val arrowLength = 12.dp.toPx()
                         val arrowAngle = PI / 6
@@ -168,17 +207,29 @@ fun MultispotArea(
                 }
 
                 if (rect != null) {
-                    TooltipContainer(
-                        spotRect = rect,
-                        tooltipStyle = currentSpot.tooltipStyle,
-                        preferredDirection = currentSpot.preferredDirection,
-                        onPositionCalculated = { pos, size, direction ->
-                            tooltipPosition = pos
-                            tooltipSize = size
-                            actualDirection = direction
-                        },
-                        content = currentSpot.tooltip
-                    )
+                    val density = LocalDensity.current
+                    val animatedYOffset = if (balloonSpec.enabled) {
+                        balloonFloatOffset * with(density) { balloonSpec.maxOffset.toPx() }
+                    } else {
+                        0f
+                    }
+                    Box(
+                        modifier = Modifier.graphicsLayer {
+                            translationY = animatedYOffset
+                        }
+                    ) {
+                        TooltipContainer(
+                            spotRect = rect,
+                            tooltipStyle = currentSpot.tooltipStyle,
+                            preferredDirection = currentSpot.preferredDirection,
+                            onPositionCalculated = { pos, size, direction ->
+                                tooltipPosition = pos
+                                tooltipSize = size
+                                actualDirection = direction
+                            },
+                            content = currentSpot.tooltip
+                        )
+                    }
                 }
             }
         }
