@@ -35,7 +35,7 @@
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("com.github.multispot:multispot:1.0.0") // 実際のバージョンに置き換えてください
+            implementation("io.github.yutarosuzuki-jp:multispot:1.1.0") // 実際のバージョンに置き換えてください
         }
     }
 }

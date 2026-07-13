@@ -37,7 +37,7 @@ Add the library to your shared Kotlin Multiplatform module's `build.gradle.kts`:
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("com.github.multispot:multispot:1.0.0") // Replace with actual library version
+            implementation("io.github.yutarosuzuki-jp:multispot:1.1.0") // Replace with actual library version
         }
     }
 }
